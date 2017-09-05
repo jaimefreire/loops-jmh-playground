@@ -26,6 +26,11 @@ public class LoopBenchmarkMain {
     private static final int size = 10000000;
     private static final int[] array = new int[size];
     private static final List<Integer> integers = setup();
+
+    private static class Wrapper {
+        int inner;
+    }
+
     private static final Wrapper wrapper = new Wrapper();
 
 
@@ -59,7 +64,7 @@ public class LoopBenchmarkMain {
     public int iteratorMaxInteger() {
         int max = MIN_VALUE;
         for (Iterator<Integer> it = integers.iterator(); it.hasNext(); ) {
-            max = max(max, it.next().intValue());
+            max = max(max, it.next());
         }
         return max;
     }
@@ -73,7 +78,7 @@ public class LoopBenchmarkMain {
     public int forEachLoopMaxInteger() {
         int max = MIN_VALUE;
         for (Integer n : integers) {
-            max = max(max, n.intValue());
+            max = max(max, n);
         }
         return max;
     }
@@ -101,8 +106,7 @@ public class LoopBenchmarkMain {
     public int collectionsMaxInteger() {
         final int[] max = {MIN_VALUE};
         integers.forEach((i) -> {
-            int b = max[0];
-            max[0] = Math.max(i.intValue(), b);
+            max[0] = Math.max(i, max[0]);
         });
         return max[0];
     }
@@ -113,26 +117,10 @@ public class LoopBenchmarkMain {
     @Fork(2)
     @Measurement(iterations = 5)
     @Warmup(iterations = 5)
-    public int collectionsMax2Integer() {
-        wrapper.inner = MIN_VALUE;
-        integers.forEach((i) -> wrapper.inner = Math.max(i.intValue(), wrapper.inner = MIN_VALUE));
-        return wrapper.inner;
-    }
-
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @OutputTimeUnit(TimeUnit.MILLISECONDS)
-    @Fork(2)
-    @Measurement(iterations = 5)
-    @Warmup(iterations = 5)
     public int forEachLambdaMaxInteger() {
         wrapper.inner = MIN_VALUE;
-        integers.forEach(i -> wrapper.inner = max(i.intValue(), wrapper.inner));
+        integers.forEach(i -> wrapper.inner = max(i, wrapper.inner));
         return wrapper.inner;
-    }
-
-    private static class Wrapper {
-        int inner;
     }
 
     @Benchmark
@@ -144,7 +132,7 @@ public class LoopBenchmarkMain {
     public int forMaxInteger() {
         int max = MIN_VALUE;
         for (int i = 0; i < size; i++) {
-            max = max(max, integers.get(i).intValue());
+            max = max(max, integers.get(i));
         }
         return max;
     }
@@ -158,7 +146,7 @@ public class LoopBenchmarkMain {
     public int forMax2Integer() {
         int max = MIN_VALUE;
         for (int i = 0; i < size; i++) {
-            max = max(max, integers.get(i).intValue());
+            max = max(max, integers.get(i));
         }
         return max;
     }
@@ -219,7 +207,6 @@ public class LoopBenchmarkMain {
     @Fork(2)
     @Measurement(iterations = 5)
     @Warmup(iterations = 5)
-
     public int streamArrayMax2Integer() {
         return IntStream.of(array).max().getAsInt();
     }
